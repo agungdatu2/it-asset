@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/shared/Modal";
 import { FileCheck } from "lucide-react";
 
 interface Props {
@@ -167,13 +168,9 @@ export function ProofModal({ assignment: a }: Props) {
       </Button>
 
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 print:bg-transparent print:p-0 print:block"
-          onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
-        >
+        <Modal onClose={() => setOpen(false)}>
           <div
-            id="proof-content"
-            className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto print:shadow-none print:max-h-none print:rounded-none"
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
           >
             {/* Header */}
             <div className="px-8 pt-8 pb-4 border-b">
@@ -295,7 +292,7 @@ export function ProofModal({ assignment: a }: Props) {
               <Button size="sm" onClick={handlePrint}>Print / Save PDF</Button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );
