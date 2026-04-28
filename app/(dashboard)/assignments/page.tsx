@@ -6,6 +6,7 @@ import { ResendEmailButton } from "./ResendEmailButton";
 import { ProofModal } from "./ProofModal";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
 import { CheckCircle2, Mail, Clock } from "lucide-react";
+import { DeleteAssignmentButton } from "./DeleteAssignmentButton";
 
 export default async function AssignmentsPage({
   searchParams,
@@ -131,11 +132,12 @@ export default async function AssignmentsPage({
                 <th className="text-left px-4 py-3 font-medium">Assigned</th>
                 <th className="text-left px-4 py-3 font-medium">Returned</th>
                 <th className="text-left px-4 py-3 font-medium">Receipt</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
               {returned.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">No returns yet.</td></tr>
+                <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">No returns yet.</td></tr>
               )}
               {returned.map((a) => (
                 <tr key={a.id} className="border-t hover:bg-muted/30 opacity-70">
@@ -156,6 +158,9 @@ export default async function AssignmentsPage({
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <DeleteAssignmentButton assignmentId={a.id} />
                   </td>
                 </tr>
               ))}

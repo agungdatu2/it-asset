@@ -435,3 +435,9 @@ export async function confirmReturn(assignmentId: string, signature: string) {
     },
   });
 }
+
+export async function deleteAssignment(assignmentId: string) {
+  await getSession();
+  await db.assetAssignment.delete({ where: { id: assignmentId } });
+  revalidatePath("/assignments");
+}
