@@ -66,10 +66,10 @@ export default async function AssetsPage({
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Assets</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <CompanyFilter companies={companies} />
           <AssetExportButton />
           <GenerateCodesButton />
@@ -87,7 +87,7 @@ export default async function AssetsPage({
 
         {/* Asset list */}
         <div className="space-y-3">
-          <div className="rounded-lg border overflow-hidden">
+          <div className="rounded-lg border overflow-hidden overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>

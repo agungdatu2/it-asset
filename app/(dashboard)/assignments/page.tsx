@@ -42,8 +42,8 @@ export default async function AssignmentsPage({
   const returned = assignments.filter((a) => a.returnedAt);
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Assignments</h1>
         <CompanyFilter companies={companies} />
       </div>
@@ -57,7 +57,7 @@ export default async function AssignmentsPage({
 
       <div className="space-y-4">
         <h2 className="font-semibold">Currently Assigned ({active.length})</h2>
-        <div className="rounded-lg border overflow-hidden">
+        <div className="rounded-lg border overflow-hidden overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
@@ -122,7 +122,7 @@ export default async function AssignmentsPage({
 
       <div className="space-y-4">
         <h2 className="font-semibold text-muted-foreground">Return History ({returned.length})</h2>
-        <div className="rounded-lg border overflow-hidden">
+        <div className="rounded-lg border overflow-hidden overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>

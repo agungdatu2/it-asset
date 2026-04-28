@@ -16,7 +16,7 @@ export default async function UsersPage() {
   ]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       <h1 className="text-2xl font-bold">Admin Users</h1>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -51,7 +51,7 @@ export default async function UsersPage() {
           </CardContent>
         </Card>
 
-        <div className="rounded-lg border overflow-hidden h-fit">
+        <div className="rounded-lg border overflow-hidden overflow-x-auto h-fit">
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr>

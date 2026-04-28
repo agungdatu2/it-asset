@@ -49,8 +49,8 @@ export default async function EmployeesPage({
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Employees</h1>
         <CompanyFilter companies={companies} />
       </div>
@@ -93,7 +93,7 @@ export default async function EmployeesPage({
         </Card>
 
         <div className="space-y-3">
-          <div className="rounded-lg border overflow-hidden">
+          <div className="rounded-lg border overflow-hidden overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>
