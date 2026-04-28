@@ -1,22 +1,28 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const assets = await db.asset.findMany({
-    include: {
-      category: true,
-      company: true,
-      assignments: {
-        where: { returnedAt: null },
-        include: { employee: true },
+  const companyId = req.nextUrl.searchParams.get("company") || undefined;
+
+  const [assets, company] = await Promise.all([
+    db.asset.findMany({
+      where: companyId ? { companyId } : {},
+      include: {
+        category: true,
+        company: true,
+        assignments: {
+          where: { returnedAt: null },
+          include: { employee: true },
+        },
       },
-    },
-    orderBy: [{ company: { name: "asc" } }, { name: "asc" }],
-  });
+      orderBy: [{ company: { name: "asc" } }, { name: "asc" }],
+    }),
+    companyId ? db.company.findUnique({ where: { id: companyId } }) : null,
+  ]);
 
   const rows = [
     ["Asset ID", "Xero Code", "Name", "Company", "Category", "Brand", "Model", "Serial Number", "Status", "Assigned To", "Purchase Date", "Purchase Price", "Invoice URL", "Notes"],
@@ -43,11 +49,12 @@ export async function GET() {
     .join("\n");
 
   const date = new Date().toISOString().split("T")[0];
+  const slug = company ? `-${company.name.toLowerCase().replace(/\s+/g, "-")}` : "";
 
   return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="assets-${date}.csv"`,
+      "Content-Disposition": `attachment; filename="assets${slug}-${date}.csv"`,
     },
   });
 }

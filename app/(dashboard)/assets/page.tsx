@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DeleteAssetButton } from "./DeleteAssetButton";
 import { GenerateCodesButton } from "./GenerateCodesButton";
+import { AssetExportButton } from "./AssetExportButton";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
 import { AssetForm } from "@/components/shared/AssetForm";
 import { createAsset } from "@/lib/actions";
@@ -70,6 +71,7 @@ export default async function AssetsPage({
         <h1 className="text-2xl font-bold">Assets</h1>
         <div className="flex items-center gap-2">
           <CompanyFilter companies={companies} />
+          <AssetExportButton />
           <GenerateCodesButton />
         </div>
       </div>
