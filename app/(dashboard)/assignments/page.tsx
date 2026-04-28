@@ -1,22 +1,20 @@
 import { db } from "@/lib/db";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { assignAsset } from "@/lib/actions";
+import { AssignForm } from "./AssignForm";
 import { ReturnButton } from "./ReturnButton";
 
 export default async function AssignmentsPage() {
-  const [assets, companies, assignments] = await Promise.all([
-    db.asset.findMany({
-      where: { status: "VACANT" },
-      include: { category: true },
-      orderBy: { name: "asc" },
-    }),
+  const [companies, assignments] = await Promise.all([
     db.company.findMany({
       orderBy: { name: "asc" },
-      include: { employees: { orderBy: { name: "asc" } } },
+      include: {
+        assets: {
+          where: { status: "VACANT" },
+          include: { category: true },
+          orderBy: { name: "asc" },
+        },
+        employees: { orderBy: { name: "asc" } },
+      },
     }),
     db.assetAssignment.findMany({
       orderBy: { assignedAt: "desc" },
@@ -28,12 +26,6 @@ export default async function AssignmentsPage() {
     }),
   ]);
 
-  // employees without a company
-  const unassignedEmployees = await db.employee.findMany({
-    where: { companyId: null },
-    orderBy: { name: "asc" },
-  });
-
   const active = assignments.filter((a) => !a.returnedAt);
   const returned = assignments.filter((a) => a.returnedAt);
 
@@ -44,62 +36,7 @@ export default async function AssignmentsPage() {
       <Card>
         <CardHeader><CardTitle className="text-base">Assign Asset</CardTitle></CardHeader>
         <CardContent>
-          <form action={assignAsset} className="grid md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label>Asset (Vacant only)</Label>
-              <Select name="assetId" required>
-                <SelectTrigger><SelectValue placeholder="Select asset..." /></SelectTrigger>
-                <SelectContent>
-                  {assets.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>{a.name} ({a.category.name})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Employee</Label>
-              <Select name="employeeId" required>
-                <SelectTrigger><SelectValue placeholder="Select employee..." /></SelectTrigger>
-                <SelectContent>
-                  {companies.map((c) =>
-                    c.employees.length > 0 ? (
-                      <div key={c.id}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
-                          {c.name}
-                        </div>
-                        {c.employees.map((e) => (
-                          <SelectItem key={e.id} value={e.id} className="pl-4">
-                            {e.name}{e.department ? ` — ${e.department}` : ""}
-                          </SelectItem>
-                        ))}
-                      </div>
-                    ) : null
-                  )}
-                  {unassignedEmployees.length > 0 && (
-                    <div>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
-                        No Company
-                      </div>
-                      {unassignedEmployees.map((e) => (
-                        <SelectItem key={e.id} value={e.id} className="pl-4">
-                          {e.name}{e.department ? ` — ${e.department}` : ""}
-                        </SelectItem>
-                      ))}
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Notes</Label>
-              <Textarea name="notes" rows={1} placeholder="optional..." />
-            </div>
-            <div className="md:col-span-3">
-              <Button type="submit">Assign</Button>
-            </div>
-          </form>
+          <AssignForm companies={companies} />
         </CardContent>
       </Card>
 
