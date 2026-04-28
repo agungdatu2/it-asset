@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AssignForm } from "./AssignForm";
 import { ReturnButton } from "./ReturnButton";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
+import { CheckCircle2, Mail, Clock } from "lucide-react";
 
 export default async function AssignmentsPage({
   searchParams,
@@ -62,12 +63,13 @@ export default async function AssignmentsPage({
                 <th className="text-left px-4 py-3 font-medium">Company</th>
                 <th className="text-left px-4 py-3 font-medium">Assigned</th>
                 <th className="text-left px-4 py-3 font-medium">Notes</th>
+                <th className="text-left px-4 py-3 font-medium">Receipt</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
               {active.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">No active assignments.</td></tr>
+                <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">No active assignments.</td></tr>
               )}
               {active.map((a) => (
                 <tr key={a.id} className="border-t hover:bg-muted/30">
@@ -79,6 +81,26 @@ export default async function AssignmentsPage({
                   <td className="px-4 py-3 text-muted-foreground">{a.employee.company?.name || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{new Date(a.assignedAt).toLocaleDateString("en-US")}</td>
                   <td className="px-4 py-3 text-muted-foreground">{a.notes || "—"}</td>
+                  <td className="px-4 py-3">
+                    {a.acknowledgedAt ? (
+                      <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Acknowledged
+                      </span>
+                    ) : a.emailSentAt ? (
+                      <span className="inline-flex items-center gap-1 text-blue-600 text-xs">
+                        <Mail className="w-3.5 h-3.5" />
+                        Email sent
+                      </span>
+                    ) : a.employee.email ? (
+                      <span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
+                        <Clock className="w-3.5 h-3.5" />
+                        Pending
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No email</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <ReturnButton assignmentId={a.id} assetId={a.assetId} />
                   </td>
@@ -100,11 +122,12 @@ export default async function AssignmentsPage({
                 <th className="text-left px-4 py-3 font-medium">Company</th>
                 <th className="text-left px-4 py-3 font-medium">Assigned</th>
                 <th className="text-left px-4 py-3 font-medium">Returned</th>
+                <th className="text-left px-4 py-3 font-medium">Receipt</th>
               </tr>
             </thead>
             <tbody>
               {returned.length === 0 && (
-                <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">No returns yet.</td></tr>
+                <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">No returns yet.</td></tr>
               )}
               {returned.map((a) => (
                 <tr key={a.id} className="border-t hover:bg-muted/30 opacity-70">
@@ -113,6 +136,16 @@ export default async function AssignmentsPage({
                   <td className="px-4 py-3 text-muted-foreground">{a.employee.company?.name || "—"}</td>
                   <td className="px-4 py-3">{new Date(a.assignedAt).toLocaleDateString("en-US")}</td>
                   <td className="px-4 py-3">{new Date(a.returnedAt!).toLocaleDateString("en-US")}</td>
+                  <td className="px-4 py-3">
+                    {a.acknowledgedAt ? (
+                      <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        {new Date(a.acknowledgedAt).toLocaleDateString("en-US")}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

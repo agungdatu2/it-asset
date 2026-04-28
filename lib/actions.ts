@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { AssetStatus } from "@prisma/client";
+import { sendAssignmentEmail } from "@/lib/email";
 
 async function getSession() {
   const session = await auth();
@@ -250,11 +251,17 @@ export async function deleteEmployee(id: string) {
 export async function assignAsset(formData: FormData) {
   const userId = await getSession();
   const assetId = formData.get("assetId") as string;
+  const employeeId = formData.get("employeeId") as string;
 
-  await db.assetAssignment.create({
+  const [asset, employee] = await Promise.all([
+    db.asset.findUnique({ where: { id: assetId }, include: { category: true } }),
+    db.employee.findUnique({ where: { id: employeeId } }),
+  ]);
+
+  const assignment = await db.assetAssignment.create({
     data: {
       assetId,
-      employeeId: formData.get("employeeId") as string,
+      employeeId,
       assignedBy: userId,
       notes: (formData.get("notes") as string) || null,
     },
@@ -274,9 +281,47 @@ export async function assignAsset(formData: FormData) {
     },
   });
 
+  // Send acknowledgment email if employee has an email address
+  if (employee?.email && asset) {
+    const baseUrl = process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000";
+    try {
+      await sendAssignmentEmail({
+        to: employee.email,
+        employeeName: employee.name,
+        assetName: asset.name,
+        assetCode: asset.assetCode,
+        category: asset.category.name,
+        brand: asset.brand,
+        model: asset.model,
+        serialNumber: asset.serialNumber,
+        assignedAt: assignment.assignedAt,
+        notes: assignment.notes,
+        acknowledgeUrl: `${baseUrl}/acknowledge/${assignment.id}`,
+      });
+      await db.assetAssignment.update({
+        where: { id: assignment.id },
+        data: { emailSentAt: new Date() },
+      });
+    } catch {
+      // Email failure does not block the assignment
+    }
+  }
+
   revalidatePath("/assignments");
   revalidatePath("/assets");
   redirect("/assignments");
+}
+
+export async function acknowledgeAssignment(assignmentId: string, note: string) {
+  await db.assetAssignment.update({
+    where: { id: assignmentId },
+    data: {
+      acknowledgedAt: new Date(),
+      acknowledgmentNote: note || null,
+    },
+  });
 }
 
 export async function returnAsset(assignmentId: string, assetId: string) {
