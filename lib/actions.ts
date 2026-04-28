@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { AssetStatus } from "@prisma/client";
-import { sendAssignmentEmail } from "@/lib/email";
+import { sendAssignmentEmail, sendReturnEmail } from "@/lib/email";
 
 async function getSession() {
   const session = await auth();
@@ -370,12 +370,18 @@ export async function acknowledgeAssignment(assignmentId: string, note: string, 
   });
 }
 
-export async function returnAsset(assignmentId: string, assetId: string) {
+export async function returnAsset(assignmentId: string, assetId: string, returnNotes: string) {
   const userId = await getSession();
 
-  await db.assetAssignment.update({
+  const returnedAt = new Date();
+
+  const assignment = await db.assetAssignment.update({
     where: { id: assignmentId },
-    data: { returnedAt: new Date() },
+    data: { returnedAt, returnNotes: returnNotes || null },
+    include: {
+      asset: { include: { category: true } },
+      employee: true,
+    },
   });
 
   await db.asset.update({
@@ -387,11 +393,45 @@ export async function returnAsset(assignmentId: string, assetId: string) {
     data: {
       assetId,
       action: "RETURNED",
-      detail: "Asset returned",
+      detail: returnNotes ? `Asset returned — ${returnNotes}` : "Asset returned",
       changedBy: userId,
     },
   });
 
+  // Send return confirmation email if employee has email
+  if (assignment.employee.email) {
+    const baseUrl = process.env.NEXTAUTH_URL
+      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    try {
+      await sendReturnEmail({
+        to: assignment.employee.email,
+        employeeName: assignment.employee.name,
+        assetName: assignment.asset.name,
+        assetCode: assignment.asset.assetCode,
+        category: assignment.asset.category.name,
+        returnNotes: returnNotes || null,
+        returnedAt,
+        confirmUrl: `${baseUrl}/return-confirm/${assignmentId}`,
+      });
+      await db.assetAssignment.update({
+        where: { id: assignmentId },
+        data: { returnEmailSentAt: new Date() },
+      });
+    } catch (err) {
+      console.error("Return email failed:", err);
+    }
+  }
+
   revalidatePath("/assignments");
   revalidatePath("/assets");
+}
+
+export async function confirmReturn(assignmentId: string, signature: string) {
+  await db.assetAssignment.update({
+    where: { id: assignmentId },
+    data: {
+      returnAcknowledgedAt: new Date(),
+      returnSignature: signature || null,
+    },
+  });
 }

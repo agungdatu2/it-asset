@@ -110,7 +110,7 @@ export default async function AssignmentsPage({
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <ReturnButton assignmentId={a.id} assetId={a.assetId} />
+                    <ReturnButton assignmentId={a.id} assetId={a.assetId} employeeEmail={a.employee.email} />
                   </td>
                 </tr>
               ))}
