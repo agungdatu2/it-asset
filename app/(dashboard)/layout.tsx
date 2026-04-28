@@ -14,7 +14,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <aside className="flex flex-col w-60 border-r bg-card shrink-0">
         {/* Logo & App name */}
         <div className="flex items-center gap-2.5 px-4 py-5 border-b">
-          <Image src="/logo.png" alt="Logo" width={32} height={32} className="object-contain" />
+          <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
+            <Image src="/logo.png" alt="Logo" width={34} height={34} className="object-contain" />
+          </div>
           <div className="leading-tight">
             <p className="font-bold text-xs tracking-tight">IT ASSETS LIST</p>
             <p className="font-bold text-xs tracking-tight text-muted-foreground">MANAGEMENT</p>

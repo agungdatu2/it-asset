@@ -36,8 +36,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto">
-            <Image src="/logo.png" alt="Logo" width={64} height={64} className="object-contain" />
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+            <Image src="/logo.png" alt="Logo" width={56} height={56} className="object-contain" />
           </div>
           <CardTitle className="text-xl">IT Assets List Management</CardTitle>
           <p className="text-sm text-muted-foreground">Sign in to continue</p>
