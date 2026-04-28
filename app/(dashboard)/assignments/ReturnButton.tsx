@@ -37,7 +37,7 @@ export function ReturnButton({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
           <div className="bg-background rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">

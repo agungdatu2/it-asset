@@ -168,7 +168,7 @@ export function ProofModal({ assignment: a }: Props) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:bg-transparent print:p-0 print:block"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 print:bg-transparent print:p-0 print:block"
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
           <div
