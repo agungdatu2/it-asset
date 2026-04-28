@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assetHistories AssetHistory[]
+  assignments    AssetAssignment[]
+}
+
+model Category {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  assets Asset[]
+}
+
+model Asset {
+  id            String      @id @default(cuid())
+  name          String
+  brand         String?
+  model         String?
+  serialNumber  String?     @unique
+  purchaseDate  DateTime?
+  purchasePrice Decimal?
+  assetCode     String?
+  xeroCode      String?
+  status        AssetStatus @default(VACANT)
+  notes         String?
+  invoiceUrl    String?
+  categoryId    String
+  companyId     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  category    Category          @relation(fields: [categoryId], references: [id])
+  company     Company?          @relation(fields: [companyId], references: [id])
+  assignments AssetAssignment[]
+  histories   AssetHistory[]
+}
+
+model Company {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  employees Employee[]
+  assets    Asset[]
+}
+
+model Employee {
+  id         String   @id @default(cuid())
+  name       String
+  department String?
+  email      String?
+  phone      String?
+  companyId  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  company     Company?          @relation(fields: [companyId], references: [id])
+  assignments AssetAssignment[]
+}
+
+model AssetAssignment {
+  id         String    @id @default(cuid())
+  assetId    String
+  employeeId String
+  assignedBy String
+  assignedAt DateTime  @default(now())
+  returnedAt DateTime?
+  notes      String?
+
+  asset          Asset    @relation(fields: [assetId], references: [id])
+  employee       Employee @relation(fields: [employeeId], references: [id])
+  assignedByUser User     @relation(fields: [assignedBy], references: [id])
+}
+
+model AssetHistory {
+  id        String   @id @default(cuid())
+  assetId   String
+  action    String
+  detail    String?
+  changedBy String
+  createdAt DateTime @default(now())
+
+  asset         Asset @relation(fields: [assetId], references: [id])
+  changedByUser User  @relation(fields: [changedBy], references: [id])
+}
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+enum AssetStatus {
+  VACANT
+  ACTIVE
+  MAINTENANCE
+  BROKEN
+  RETIRED
+}
