@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,25 +9,44 @@ import { createEmployee } from "@/lib/actions";
 import { DeleteEmployeeButton } from "./DeleteEmployeeButton";
 import { EditEmployeeForm } from "./EditEmployeeForm";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
+import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE = 10;
 
 export default async function EmployeesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ company?: string }>;
+  searchParams: Promise<{ company?: string; page?: string }>;
 }) {
-  const { company: companyId } = await searchParams;
+  const { company: companyId, page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1") || 1);
+  const where = companyId ? { companyId } : {};
 
-  const [employees, companies] = await Promise.all([
+  const [total, employees, companies] = await Promise.all([
+    db.employee.count({ where }),
     db.employee.findMany({
-      where: companyId ? { companyId } : {},
+      where,
       orderBy: { name: "asc" },
       include: {
         company: true,
         _count: { select: { assignments: { where: { returnedAt: null } } } },
       },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
     }),
     db.company.findMany({ orderBy: { name: "asc" } }),
   ]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  function pageUrl(p: number) {
+    const params = new URLSearchParams();
+    if (companyId) params.set("company", companyId);
+    if (p > 1) params.set("page", String(p));
+    const qs = params.toString();
+    return `/employees${qs ? `?${qs}` : ""}`;
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -72,7 +92,7 @@ export default async function EmployeesPage({
           </CardContent>
         </Card>
 
-        <div>
+        <div className="space-y-3">
           <div className="rounded-lg border overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
@@ -108,6 +128,42 @@ export default async function EmployeesPage({
               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
+              </span>
+              <div className="flex items-center gap-1">
+                <Link
+                  href={pageUrl(page - 1)}
+                  aria-disabled={page <= 1}
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    page <= 1 && "pointer-events-none opacity-50"
+                  )}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Link>
+                <span className="px-2 text-muted-foreground">
+                  {page} / {totalPages}
+                </span>
+                <Link
+                  href={pageUrl(page + 1)}
+                  aria-disabled={page >= totalPages}
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    page >= totalPages && "pointer-events-none opacity-50"
+                  )}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground text-right">
+            {total} employee{total !== 1 ? "s" : ""} total
+          </p>
         </div>
       </div>
     </div>
