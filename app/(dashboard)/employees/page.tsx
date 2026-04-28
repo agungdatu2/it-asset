@@ -7,10 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createEmployee } from "@/lib/actions";
 import { DeleteEmployeeButton } from "./DeleteEmployeeButton";
 import { EditEmployeeForm } from "./EditEmployeeForm";
+import { CompanyFilter } from "@/components/shared/CompanyFilter";
 
-export default async function EmployeesPage() {
+export default async function EmployeesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ company?: string }>;
+}) {
+  const { company: companyId } = await searchParams;
+
   const [employees, companies] = await Promise.all([
     db.employee.findMany({
+      where: companyId ? { companyId } : {},
       orderBy: { name: "asc" },
       include: {
         company: true,
@@ -22,7 +30,10 @@ export default async function EmployeesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Employees</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Employees</h1>
+        <CompanyFilter companies={companies} />
+      </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
@@ -35,7 +46,7 @@ export default async function EmployeesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Company</Label>
-                <Select name="companyId">
+                <Select name="companyId" defaultValue={companyId ?? ""}>
                   <SelectTrigger><SelectValue placeholder="Select company..." /></SelectTrigger>
                   <SelectContent>
                     {companies.map((c) => (
@@ -75,7 +86,7 @@ export default async function EmployeesPage() {
               </thead>
               <tbody>
                 {employees.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">No employees yet.</td></tr>
+                  <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">No employees found.</td></tr>
                 )}
                 {employees.map((emp) => (
                   <tr key={emp.id} className="border-t hover:bg-muted/30">

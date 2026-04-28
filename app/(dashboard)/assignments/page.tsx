@@ -2,8 +2,15 @@ import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AssignForm } from "./AssignForm";
 import { ReturnButton } from "./ReturnButton";
+import { CompanyFilter } from "@/components/shared/CompanyFilter";
 
-export default async function AssignmentsPage() {
+export default async function AssignmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ company?: string }>;
+}) {
+  const { company: companyId } = await searchParams;
+
   const [companies, assignments] = await Promise.all([
     db.company.findMany({
       orderBy: { name: "asc" },
@@ -17,6 +24,7 @@ export default async function AssignmentsPage() {
       },
     }),
     db.assetAssignment.findMany({
+      where: companyId ? { employee: { companyId } } : {},
       orderBy: { assignedAt: "desc" },
       include: {
         asset: { include: { category: true } },
@@ -31,7 +39,10 @@ export default async function AssignmentsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Assignments</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Assignments</h1>
+        <CompanyFilter companies={companies} />
+      </div>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Assign Asset</CardTitle></CardHeader>

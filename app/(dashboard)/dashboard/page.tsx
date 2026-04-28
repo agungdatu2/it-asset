@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Users, ArrowLeftRight, AlertTriangle } from "lucide-react";
 import { ExportButton } from "./ExportButton";
+import { CompanyFilter } from "@/components/shared/CompanyFilter";
 
 const STATUS_LABELS: Record<string, string> = {
   VACANT: "Vacant",
@@ -20,14 +21,28 @@ const STATUS_COLORS: Record<string, string> = {
   RETIRED: "bg-gray-100 text-gray-500",
 };
 
-export default async function DashboardPage() {
-  const [assets, employees, activeAssignments, recentHistories, companies] = await Promise.all([
-    db.asset.findMany({ include: { category: true, company: true } }),
-    db.employee.count(),
-    db.assetAssignment.count({ where: { returnedAt: null } }),
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ company?: string }>;
+}) {
+  const { company: companyId } = await searchParams;
+
+  const [assets, employeeCount, activeAssignments, recentHistories, companies] = await Promise.all([
+    db.asset.findMany({
+      where: companyId ? { companyId } : {},
+      include: { category: true, company: true },
+    }),
+    db.employee.count(companyId ? { where: { companyId } } : {}),
+    db.assetAssignment.count({
+      where: companyId
+        ? { returnedAt: null, employee: { companyId } }
+        : { returnedAt: null },
+    }),
     db.assetHistory.findMany({
       take: 10,
       orderBy: { createdAt: "desc" },
+      where: companyId ? { asset: { companyId } } : {},
       include: { asset: true, changedByUser: true },
     }),
     db.company.findMany({
@@ -46,7 +61,7 @@ export default async function DashboardPage() {
     return acc;
   }, {});
 
-  // per-company breakdown
+  // per-company breakdown (always show all companies unfiltered for the table)
   const companyStats = companies.map((c) => {
     const vacant = c.assets.filter((a) => a.status === "VACANT").length;
     const active = c.assets.filter((a) => a.status === "ACTIVE").length;
@@ -54,16 +69,18 @@ export default async function DashboardPage() {
     return { name: c.name, total: c.assets.length, vacant, active, other };
   });
 
-  // unassigned company assets
-  const noCompany = assets.filter((a) => !a.companyId);
-  const noCompanyVacant = noCompany.filter((a) => a.status === "VACANT").length;
-  const noCompanyActive = noCompany.filter((a) => a.status === "ACTIVE").length;
+  const noCompanyAssets = companyId ? [] : assets.filter((a) => !a.companyId);
+  const noCompanyVacant = noCompanyAssets.filter((a) => a.status === "VACANT").length;
+  const noCompanyActive = noCompanyAssets.filter((a) => a.status === "ACTIVE").length;
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <ExportButton />
+        <div className="flex items-center gap-2">
+          <CompanyFilter companies={companies} />
+          <ExportButton />
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -84,7 +101,7 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-3">
               <Users className="w-8 h-8 text-blue-500" />
               <div>
-                <p className="text-2xl font-bold">{employees}</p>
+                <p className="text-2xl font-bold">{employeeCount}</p>
                 <p className="text-xs text-muted-foreground">Employees</p>
               </div>
             </div>
@@ -114,56 +131,58 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Per-company breakdown */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Assets by Company</CardTitle></CardHeader>
-        <CardContent>
-          <div className="rounded-lg border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-2.5 font-medium">Company</th>
-                  <th className="text-center px-4 py-2.5 font-medium">Total</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-gray-500">Vacant</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-green-700">Active</th>
-                  <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Other</th>
-                </tr>
-              </thead>
-              <tbody>
-                {companyStats.map((c) => (
-                  <tr key={c.name} className="border-t hover:bg-muted/30">
-                    <td className="px-4 py-2.5 font-medium">{c.name}</td>
-                    <td className="px-4 py-2.5 text-center">{c.total}</td>
-                    <td className="px-4 py-2.5 text-center">
-                      <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">{c.vacant}</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center">
-                      <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium">{c.active}</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center text-muted-foreground">{c.other}</td>
+      {/* Per-company breakdown — only show when no company filter active */}
+      {!companyId && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Assets by Company</CardTitle></CardHeader>
+          <CardContent>
+            <div className="rounded-lg border overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="text-left px-4 py-2.5 font-medium">Company</th>
+                    <th className="text-center px-4 py-2.5 font-medium">Total</th>
+                    <th className="text-center px-4 py-2.5 font-medium text-gray-500">Vacant</th>
+                    <th className="text-center px-4 py-2.5 font-medium text-green-700">Active</th>
+                    <th className="text-center px-4 py-2.5 font-medium text-muted-foreground">Other</th>
                   </tr>
-                ))}
-                {noCompany.length > 0 && (
-                  <tr className="border-t hover:bg-muted/30 italic">
-                    <td className="px-4 py-2.5 text-muted-foreground">No Company</td>
-                    <td className="px-4 py-2.5 text-center">{noCompany.length}</td>
-                    <td className="px-4 py-2.5 text-center">
-                      <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">{noCompanyVacant}</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center">
-                      <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium">{noCompanyActive}</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center text-muted-foreground">{noCompany.length - noCompanyVacant - noCompanyActive}</td>
-                  </tr>
-                )}
-                {companyStats.length === 0 && noCompany.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-6 text-muted-foreground">No assets yet.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                </thead>
+                <tbody>
+                  {companyStats.map((c) => (
+                    <tr key={c.name} className="border-t hover:bg-muted/30">
+                      <td className="px-4 py-2.5 font-medium">{c.name}</td>
+                      <td className="px-4 py-2.5 text-center">{c.total}</td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">{c.vacant}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium">{c.active}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{c.other}</td>
+                    </tr>
+                  ))}
+                  {noCompanyAssets.length > 0 && (
+                    <tr className="border-t hover:bg-muted/30 italic">
+                      <td className="px-4 py-2.5 text-muted-foreground">No Company</td>
+                      <td className="px-4 py-2.5 text-center">{noCompanyAssets.length}</td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">{noCompanyVacant}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium">{noCompanyActive}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center text-muted-foreground">{noCompanyAssets.length - noCompanyVacant - noCompanyActive}</td>
+                    </tr>
+                  )}
+                  {companyStats.length === 0 && noCompanyAssets.length === 0 && (
+                    <tr><td colSpan={5} className="text-center py-6 text-muted-foreground">No assets yet.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
@@ -177,6 +196,9 @@ export default async function DashboardPage() {
                 <span className="font-semibold text-sm">{count}</span>
               </div>
             ))}
+            {Object.keys(byStatus).length === 0 && (
+              <p className="text-sm text-muted-foreground">No assets.</p>
+            )}
           </CardContent>
         </Card>
 
@@ -189,6 +211,9 @@ export default async function DashboardPage() {
                 <Badge variant="secondary">{count}</Badge>
               </div>
             ))}
+            {Object.keys(byCategory).length === 0 && (
+              <p className="text-sm text-muted-foreground">No assets.</p>
+            )}
           </CardContent>
         </Card>
       </div>
