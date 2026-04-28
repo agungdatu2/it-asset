@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,21 +37,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto">
-            <svg width="48" height="48" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="lg1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#6366f1"/>
-                  <stop offset="50%" stopColor="#3b82f6"/>
-                  <stop offset="100%" stopColor="#06b6d4"/>
-                </linearGradient>
-                <linearGradient id="lg2" x1="28" y1="0" x2="14" y2="28" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#f43f5e"/>
-                  <stop offset="100%" stopColor="#ec4899"/>
-                </linearGradient>
-              </defs>
-              <path d="M13 4L4 14L13 24L18 18L11 14L18 10Z" fill="url(#lg1)"/>
-              <path d="M20 8L24 14L20 20L23 20L27 14L23 8Z" fill="url(#lg2)"/>
-            </svg>
+            <Image src="/logo.png" alt="Logo" width={64} height={64} className="object-contain" />
           </div>
           <CardTitle className="text-xl">IT Assets List Management</CardTitle>
           <p className="text-sm text-muted-foreground">Sign in to continue</p>
