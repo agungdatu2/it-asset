@@ -36,7 +36,108 @@ export function ProofModal({ assignment: a }: Props) {
   if (!a.acknowledgedAt) return null;
 
   function handlePrint() {
-    window.print();
+    const assignedDate = new Date(a.assignedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    const acknowledgedDate = new Date(a.acknowledgedAt!).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const assetLabel = [a.asset.brand, a.asset.model].filter(Boolean).join(" ");
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Asset Receipt Proof – ${a.employee.name}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #111; padding: 48px; max-width: 680px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 28px; }
+    .title { font-size: 22px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: #6b7280; margin-top: 4px; }
+    .badge { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 99px; }
+    .section { margin-bottom: 24px; }
+    .section-title { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+    .full { grid-column: 1 / -1; }
+    .label { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
+    .value { font-size: 13px; font-weight: 500; }
+    .mono { font-family: monospace; font-size: 12px; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+    .sig-box { border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; padding: 12px; display: inline-block; margin-top: 8px; }
+    .sig-box img { max-height: 100px; display: block; }
+    .footer { margin-top: 40px; font-size: 11px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="title">Asset Receipt Proof</div>
+      <div class="subtitle">Official acknowledgment of asset handover</div>
+    </div>
+    <div class="badge">✓ Acknowledged</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Employee</div>
+    <div class="grid">
+      <div><div class="label">Name</div><div class="value">${a.employee.name}</div></div>
+      ${a.employee.company ? `<div><div class="label">Company</div><div class="value">${a.employee.company.name}</div></div>` : ""}
+      ${a.employee.department ? `<div><div class="label">Department</div><div class="value">${a.employee.department}</div></div>` : ""}
+      ${a.employee.email ? `<div><div class="label">Email</div><div class="value">${a.employee.email}</div></div>` : ""}
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-title">Asset</div>
+    <div class="grid">
+      <div class="full"><div class="label">Name</div><div class="value">${a.asset.name}</div></div>
+      <div><div class="label">Category</div><div class="value">${a.asset.category.name}</div></div>
+      ${a.asset.assetCode ? `<div><div class="label">Asset ID</div><div class="value mono">${a.asset.assetCode}</div></div>` : ""}
+      ${a.asset.xeroCode ? `<div><div class="label">Xero Code</div><div class="value mono">${a.asset.xeroCode}</div></div>` : ""}
+      ${assetLabel ? `<div><div class="label">Brand / Model</div><div class="value">${assetLabel}</div></div>` : ""}
+      ${a.asset.serialNumber ? `<div><div class="label">Serial Number</div><div class="value mono">${a.asset.serialNumber}</div></div>` : ""}
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-title">Timeline</div>
+    <div class="grid">
+      <div><div class="label">Assigned</div><div class="value">${assignedDate}</div></div>
+      <div><div class="label">Acknowledged</div><div class="value">${acknowledgedDate}</div></div>
+      ${a.assignedByUser.name ? `<div><div class="label">Assigned by</div><div class="value">${a.assignedByUser.name}</div></div>` : ""}
+    </div>
+  </div>
+
+  ${(a.notes || a.acknowledgmentNote) ? `
+  <hr class="divider">
+  <div class="section">
+    <div class="section-title">Notes</div>
+    ${a.notes ? `<p style="font-size:13px;color:#374151;margin-bottom:6px;"><span style="color:#9ca3af">Assignment: </span>${a.notes}</p>` : ""}
+    ${a.acknowledgmentNote ? `<p style="font-size:13px;color:#374151"><span style="color:#9ca3af">Employee: </span>${a.acknowledgmentNote}</p>` : ""}
+  </div>` : ""}
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-title">Employee Signature</div>
+    ${a.acknowledgmentSignature
+      ? `<div class="sig-box"><img src="${a.acknowledgmentSignature}" alt="Signature"></div>`
+      : `<p style="font-size:13px;color:#9ca3af;font-style:italic">No signature captured</p>`}
+  </div>
+
+  <div class="footer">
+    Generated on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+  </div>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 300);
   }
 
   return (
