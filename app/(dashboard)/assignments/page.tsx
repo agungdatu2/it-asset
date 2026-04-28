@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AssignForm } from "./AssignForm";
 import { ReturnButton } from "./ReturnButton";
 import { ResendEmailButton } from "./ResendEmailButton";
+import { ProofModal } from "./ProofModal";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
 import { CheckCircle2, Mail, Clock } from "lucide-react";
 
@@ -31,7 +32,7 @@ export default async function AssignmentsPage({
       include: {
         asset: { include: { category: true } },
         employee: { include: { company: true } },
-        assignedByUser: true,
+        assignedByUser: { select: { name: true } },
       },
     }),
   ]);
@@ -105,6 +106,7 @@ export default async function AssignmentsPage({
                       {a.employee.email && !a.acknowledgedAt && (
                         <ResendEmailButton assignmentId={a.id} />
                       )}
+                      {a.acknowledgedAt && <ProofModal assignment={a} />}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -144,10 +146,13 @@ export default async function AssignmentsPage({
                   <td className="px-4 py-3">{new Date(a.returnedAt!).toLocaleDateString("en-US")}</td>
                   <td className="px-4 py-3">
                     {a.acknowledgedAt ? (
-                      <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        {new Date(a.acknowledgedAt).toLocaleDateString("en-US")}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          {new Date(a.acknowledgedAt).toLocaleDateString("en-US")}
+                        </span>
+                        <ProofModal assignment={a} />
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}

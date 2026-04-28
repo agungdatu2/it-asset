@@ -359,12 +359,13 @@ export async function resendAssignmentEmail(assignmentId: string) {
   revalidatePath("/assignments");
 }
 
-export async function acknowledgeAssignment(assignmentId: string, note: string) {
+export async function acknowledgeAssignment(assignmentId: string, note: string, signature: string) {
   await db.assetAssignment.update({
     where: { id: assignmentId },
     data: {
       acknowledgedAt: new Date(),
       acknowledgmentNote: note || null,
+      acknowledgmentSignature: signature || null,
     },
   });
 }

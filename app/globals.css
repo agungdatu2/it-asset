@@ -128,3 +128,8 @@
     @apply font-sans;
   }
 }
+@media print {
+  body > *:not(#proof-content) { display: none !important; }
+  #proof-content { display: block !important; }
+  .print\:hidden { display: none !important; }
+}

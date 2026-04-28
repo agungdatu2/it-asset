@@ -81,9 +81,10 @@ model AssetAssignment {
   assignedAt          DateTime  @default(now())
   returnedAt          DateTime?
   notes               String?
-  emailSentAt         DateTime?
-  acknowledgedAt      DateTime?
-  acknowledgmentNote  String?
+  emailSentAt              DateTime?
+  acknowledgedAt           DateTime?
+  acknowledgmentNote       String?
+  acknowledgmentSignature  String?
 
   asset          Asset    @relation(fields: [assetId], references: [id])
   employee       Employee @relation(fields: [employeeId], references: [id])
