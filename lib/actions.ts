@@ -314,6 +314,47 @@ export async function assignAsset(formData: FormData) {
   redirect("/assignments");
 }
 
+export async function resendAssignmentEmail(assignmentId: string) {
+  await getSession();
+
+  const assignment = await db.assetAssignment.findUnique({
+    where: { id: assignmentId },
+    include: {
+      asset: { include: { category: true } },
+      employee: true,
+    },
+  });
+
+  if (!assignment?.employee.email) throw new Error("No email address for employee");
+
+  const baseUrl = process.env.NEXTAUTH_URL
+    ? process.env.NEXTAUTH_URL
+    : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+
+  await sendAssignmentEmail({
+    to: assignment.employee.email,
+    employeeName: assignment.employee.name,
+    assetName: assignment.asset.name,
+    assetCode: assignment.asset.assetCode,
+    category: assignment.asset.category.name,
+    brand: assignment.asset.brand,
+    model: assignment.asset.model,
+    serialNumber: assignment.asset.serialNumber,
+    assignedAt: assignment.assignedAt,
+    notes: assignment.notes,
+    acknowledgeUrl: `${baseUrl}/acknowledge/${assignment.id}`,
+  });
+
+  await db.assetAssignment.update({
+    where: { id: assignmentId },
+    data: { emailSentAt: new Date() },
+  });
+
+  revalidatePath("/assignments");
+}
+
 export async function acknowledgeAssignment(assignmentId: string, note: string) {
   await db.assetAssignment.update({
     where: { id: assignmentId },

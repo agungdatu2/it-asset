@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AssignForm } from "./AssignForm";
 import { ReturnButton } from "./ReturnButton";
+import { ResendEmailButton } from "./ResendEmailButton";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
 import { CheckCircle2, Mail, Clock } from "lucide-react";
 
@@ -82,24 +83,29 @@ export default async function AssignmentsPage({
                   <td className="px-4 py-3 text-muted-foreground">{new Date(a.assignedAt).toLocaleDateString("en-US")}</td>
                   <td className="px-4 py-3 text-muted-foreground">{a.notes || "—"}</td>
                   <td className="px-4 py-3">
-                    {a.acknowledgedAt ? (
-                      <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Acknowledged
-                      </span>
-                    ) : a.emailSentAt ? (
-                      <span className="inline-flex items-center gap-1 text-blue-600 text-xs">
-                        <Mail className="w-3.5 h-3.5" />
-                        Email sent
-                      </span>
-                    ) : a.employee.email ? (
-                      <span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
-                        <Clock className="w-3.5 h-3.5" />
-                        Pending
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">No email</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {a.acknowledgedAt ? (
+                        <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Acknowledged
+                        </span>
+                      ) : a.emailSentAt ? (
+                        <span className="inline-flex items-center gap-1 text-blue-600 text-xs">
+                          <Mail className="w-3.5 h-3.5" />
+                          Email sent
+                        </span>
+                      ) : a.employee.email ? (
+                        <span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
+                          <Clock className="w-3.5 h-3.5" />
+                          Pending
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No email</span>
+                      )}
+                      {a.employee.email && !a.acknowledgedAt && (
+                        <ResendEmailButton assignmentId={a.id} />
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <ReturnButton assignmentId={a.id} assetId={a.assetId} />
