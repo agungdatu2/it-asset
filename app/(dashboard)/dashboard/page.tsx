@@ -33,7 +33,7 @@ export default async function DashboardPage({
       where: companyId ? { companyId } : {},
       include: { category: true, company: true },
     }),
-    db.employee.count(companyId ? { where: { companyId } } : {}),
+    db.employee.count(companyId ? { where: { companyId } } : undefined),
     db.assetAssignment.count({
       where: companyId
         ? { returnedAt: null, employee: { companyId } }
