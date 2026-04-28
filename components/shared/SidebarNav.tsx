@@ -1,7 +1,7 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition, useState } from "react";
-import { LayoutDashboard, Monitor, Users, ArrowLeftRight, Building2, Loader2 } from "lucide-react";
+import { LayoutDashboard, Monitor, Users, ArrowLeftRight, Building2, ShieldCheck, Loader2 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/dashboard",   label: "Dashboard",   icon: LayoutDashboard },
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/companies",   label: "Companies",   icon: Building2 },
   { href: "/employees",   label: "Employees",   icon: Users },
   { href: "/assignments", label: "Assignments", icon: ArrowLeftRight },
+  { href: "/users",       label: "Admin Users", icon: ShieldCheck },
 ];
 
 export function SidebarNav() {

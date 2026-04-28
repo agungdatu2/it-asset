@@ -153,6 +153,32 @@ export async function deleteAsset(id: string) {
   revalidatePath("/assets");
 }
 
+// ── Users ────────────────────────────────────────────────────────────────────
+
+export async function createAdminUser(formData: FormData) {
+  await getSession();
+  const { default: bcrypt } = await import("bcryptjs");
+  const password = formData.get("password") as string;
+  const hash = await bcrypt.hash(password, 10);
+  await db.user.create({
+    data: {
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      password: hash,
+      role: (formData.get("role") as "ADMIN" | "VIEWER") || "ADMIN",
+    },
+  });
+  revalidatePath("/users");
+  redirect("/users");
+}
+
+export async function deleteUser(id: string) {
+  const currentUserId = await getSession();
+  if (id === currentUserId) throw new Error("Cannot delete your own account");
+  await db.user.delete({ where: { id } });
+  revalidatePath("/users");
+}
+
 // ── Companies ────────────────────────────────────────────────────────────────
 
 export async function createCompany(formData: FormData) {
