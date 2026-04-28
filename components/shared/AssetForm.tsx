@@ -52,8 +52,8 @@ export function AssetForm({ action, companies, defaultValues }: Props) {
     : "";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="col-span-2 space-y-1.5">
           <Label htmlFor="name">Asset Name *</Label>
           <Input id="name" name="name" required defaultValue={defaultValues?.name} placeholder="e.g. MacBook Pro 14" />
