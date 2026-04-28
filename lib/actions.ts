@@ -283,9 +283,8 @@ export async function assignAsset(formData: FormData) {
 
   // Send acknowledgment email if employee has an email address
   if (employee?.email && asset) {
-    const baseUrl = process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL
+      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
     try {
       await sendAssignmentEmail({
         to: employee.email,
@@ -304,7 +303,8 @@ export async function assignAsset(formData: FormData) {
         where: { id: assignment.id },
         data: { emailSentAt: new Date() },
       });
-    } catch {
+    } catch (err) {
+      console.error("Assignment email failed:", err);
       // Email failure does not block the assignment
     }
   }
@@ -333,7 +333,7 @@ export async function resendAssignmentEmail(assignmentId: string) {
     ? `https://${process.env.VERCEL_URL}`
     : "http://localhost:3000";
 
-  await sendAssignmentEmail({
+  const result = await sendAssignmentEmail({
     to: assignment.employee.email,
     employeeName: assignment.employee.name,
     assetName: assignment.asset.name,
@@ -346,6 +346,10 @@ export async function resendAssignmentEmail(assignmentId: string) {
     notes: assignment.notes,
     acknowledgeUrl: `${baseUrl}/acknowledge/${assignment.id}`,
   });
+
+  if ("error" in result && result.error) {
+    throw new Error(JSON.stringify(result.error));
+  }
 
   await db.assetAssignment.update({
     where: { id: assignmentId },
