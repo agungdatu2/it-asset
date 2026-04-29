@@ -153,25 +153,30 @@ export function AssetForm({ action, companies, defaultValues }: Props) {
 
         <div className="col-span-2 space-y-1.5">
           <Label>Asset Image</Label>
-          {preview ? (
-            <div className="relative w-48 h-36 rounded-lg overflow-hidden border bg-muted">
-              <Image src={preview} alt="Asset preview" fill className="object-cover" unoptimized={preview.startsWith("blob:")} />
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <label className="flex flex-col items-center justify-center w-48 h-36 rounded-lg border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-muted-foreground/60 transition-colors bg-muted/30">
-              <ImagePlus className="w-6 h-6 text-muted-foreground mb-1" />
-              <span className="text-xs text-muted-foreground">Click to upload</span>
-              <input ref={fileRef} type="file" name="image" accept="image/*" className="hidden" onChange={handleImageChange} />
-            </label>
-          )}
-          {/* preserve existing URL if no new file uploaded */}
+          <div className="relative w-48 h-36">
+            {preview ? (
+              <>
+                <div className="w-48 h-36 rounded-lg overflow-hidden border bg-muted">
+                  <Image src={preview} alt="Asset preview" fill className="object-cover" unoptimized={preview.startsWith("blob:")} />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-48 h-36 rounded-lg border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-muted-foreground/60 transition-colors bg-muted/30">
+                <ImagePlus className="w-6 h-6 text-muted-foreground mb-1" />
+                <span className="text-xs text-muted-foreground">Click to upload</span>
+              </label>
+            )}
+          </div>
+          {/* file input always in DOM so FormData captures the file */}
+          <input ref={fileRef} type="file" name="image" accept="image/*" className="hidden" onChange={handleImageChange} />
+          {/* preserve existing URL if no new file selected */}
           {defaultValues?.imageUrl && (
             <input type="hidden" name="existingImageUrl" value={preview === defaultValues.imageUrl ? defaultValues.imageUrl : ""} />
           )}
