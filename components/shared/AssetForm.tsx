@@ -168,14 +168,14 @@ export function AssetForm({ action, companies, defaultValues }: Props) {
                 </button>
               </>
             ) : (
-              <label className="flex flex-col items-center justify-center w-48 h-36 rounded-lg border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-muted-foreground/60 transition-colors bg-muted/30">
+              <label htmlFor="asset-image-input" className="flex flex-col items-center justify-center w-48 h-36 rounded-lg border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-muted-foreground/60 transition-colors bg-muted/30">
                 <ImagePlus className="w-6 h-6 text-muted-foreground mb-1" />
                 <span className="text-xs text-muted-foreground">Click to upload</span>
               </label>
             )}
           </div>
           {/* file input always in DOM so FormData captures the file */}
-          <input ref={fileRef} type="file" name="image" accept="image/*" className="hidden" onChange={handleImageChange} />
+          <input ref={fileRef} id="asset-image-input" type="file" name="image" accept="image/*" className="hidden" onChange={handleImageChange} />
           {/* preserve existing URL if no new file selected */}
           {defaultValues?.imageUrl && (
             <input type="hidden" name="existingImageUrl" value={preview === defaultValues.imageUrl ? defaultValues.imageUrl : ""} />
