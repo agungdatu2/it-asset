@@ -170,7 +170,7 @@ export function ProofModal({ assignment: a }: Props) {
       {open && (
         <Modal onClose={() => setOpen(false)}>
           <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            className="bg-white text-gray-900 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
           >
             {/* Header */}
             <div className="px-8 pt-8 pb-4 border-b">
