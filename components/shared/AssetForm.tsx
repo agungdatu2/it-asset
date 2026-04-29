@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 
-const CATEGORIES = ["Laptop", "Monitor", "Printer", "Software License", "Keyboard", "Mouse", "Server", "Other"];
+const CATEGORIES = ["Laptop", "Computer", "Monitor", "Printer", "Software License", "Keyboard", "Mouse", "Server", "Other"];
 const STATUSES = [
   { value: "VACANT", label: "Vacant" },
   { value: "ACTIVE", label: "Active" },

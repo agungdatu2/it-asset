@@ -14,6 +14,7 @@ async function getSession() {
 
 const CATEGORY_PREFIX: Record<string, string> = {
   "Laptop": "LAP",
+  "Computer": "COMP",
   "Monitor": "MON",
   "Printer": "PRN",
   "Software License": "SFW",
