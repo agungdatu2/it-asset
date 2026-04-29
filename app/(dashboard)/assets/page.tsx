@@ -1,5 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
+
+function blobSrc(url: string) {
+  return `/api/asset-image?url=${encodeURIComponent(url)}`;
+}
 import { db } from "@/lib/db";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -115,7 +119,7 @@ export default async function AssetsPage({
                         <div className="flex items-center gap-3">
                           {asset.imageUrl ? (
                             <div className="relative w-10 h-10 rounded-md overflow-hidden border shrink-0 bg-muted">
-                              <Image src={asset.imageUrl} alt={asset.name} fill className="object-cover" />
+                              <Image src={blobSrc(asset.imageUrl)} alt={asset.name} fill className="object-cover" unoptimized />
                             </div>
                           ) : (
                             <div className="w-10 h-10 rounded-md border bg-muted shrink-0" />

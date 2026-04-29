@@ -9,7 +9,7 @@ import { put } from "@vercel/blob";
 
 async function uploadImage(file: File): Promise<string> {
   const ext = file.name.split(".").pop() ?? "jpg";
-  const blob = await put(`assets/${Date.now()}.${ext}`, file, { access: "public" });
+  const blob = await put(`assets/${Date.now()}.${ext}`, file, { access: "private" });
   return blob.url;
 }
 

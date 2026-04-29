@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+
+function blobSrc(url: string) {
+  return `/api/asset-image?url=${encodeURIComponent(url)}`;
+}
 import { db } from "@/lib/db";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,7 +52,7 @@ export default async function EditAssetPage({ params }: { params: Promise<{ id: 
       <div className="flex items-center gap-4">
         {asset.imageUrl && (
           <div className="relative w-20 h-20 rounded-lg overflow-hidden border bg-muted shrink-0">
-            <Image src={asset.imageUrl} alt={asset.name} fill className="object-cover" />
+            <Image src={blobSrc(asset.imageUrl)} alt={asset.name} fill className="object-cover" unoptimized />
           </div>
         )}
         <h1 className="text-2xl font-bold">Edit Asset — {asset.name}</h1>

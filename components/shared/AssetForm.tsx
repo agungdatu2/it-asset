@@ -1,6 +1,10 @@
 "use client";
 import { useTransition, useState, useRef } from "react";
 import Image from "next/image";
+
+function blobSrc(url: string) {
+  return `/api/asset-image?url=${encodeURIComponent(url)}`;
+}
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +47,8 @@ interface Props {
 
 export function AssetForm({ action, companies, defaultValues }: Props) {
   const [isPending, startTransition] = useTransition();
-  const [preview, setPreview] = useState<string | null>(defaultValues?.imageUrl ?? null);
+  const initialPreview = defaultValues?.imageUrl ? blobSrc(defaultValues.imageUrl) : null;
+  const [preview, setPreview] = useState<string | null>(initialPreview);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -157,7 +162,7 @@ export function AssetForm({ action, companies, defaultValues }: Props) {
             {preview ? (
               <>
                 <div className="w-48 h-36 rounded-lg overflow-hidden border bg-muted">
-                  <Image src={preview} alt="Asset preview" fill className="object-cover" unoptimized={preview.startsWith("blob:")} />
+                  <Image src={preview} alt="Asset preview" fill className="object-cover" unoptimized />
                 </div>
                 <button
                   type="button"
