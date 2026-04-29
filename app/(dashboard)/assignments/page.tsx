@@ -5,15 +5,16 @@ import { ReturnButton } from "./ReturnButton";
 import { ResendEmailButton } from "./ResendEmailButton";
 import { ProofModal } from "./ProofModal";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
+import { SearchInput } from "@/components/shared/SearchInput";
 import { CheckCircle2, Mail, Clock } from "lucide-react";
 import { DeleteAssignmentButton } from "./DeleteAssignmentButton";
 
 export default async function AssignmentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ company?: string }>;
+  searchParams: Promise<{ company?: string; q?: string }>;
 }) {
-  const { company: companyId } = await searchParams;
+  const { company: companyId, q } = await searchParams;
 
   const [companies, assignments] = await Promise.all([
     db.company.findMany({
@@ -28,7 +29,15 @@ export default async function AssignmentsPage({
       },
     }),
     db.assetAssignment.findMany({
-      where: companyId ? { employee: { companyId } } : {},
+      where: {
+        ...(companyId ? { employee: { companyId } } : {}),
+        ...(q ? {
+          OR: [
+            { asset: { name: { contains: q, mode: "insensitive" as const } } },
+            { employee: { name: { contains: q, mode: "insensitive" as const } } },
+          ],
+        } : {}),
+      },
       orderBy: { assignedAt: "desc" },
       include: {
         asset: { include: { category: true } },
@@ -45,7 +54,10 @@ export default async function AssignmentsPage({
     <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Assignments</h1>
-        <CompanyFilter companies={companies} />
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchInput placeholder="Search assignments..." />
+          <CompanyFilter companies={companies} />
+        </div>
       </div>
 
       <Card>

@@ -12,6 +12,7 @@ import { DeleteAssetButton } from "./DeleteAssetButton";
 import { GenerateCodesButton } from "./GenerateCodesButton";
 import { AssetExportButton } from "./AssetExportButton";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
+import { SearchInput } from "@/components/shared/SearchInput";
 import { AssetForm } from "@/components/shared/AssetForm";
 import { createAsset } from "@/lib/actions";
 import { cn } from "@/lib/utils";
@@ -40,11 +41,23 @@ const PAGE_SIZE = 10;
 export default async function AssetsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ company?: string; page?: string }>;
+  searchParams: Promise<{ company?: string; page?: string; q?: string }>;
 }) {
-  const { company: companyId, page: pageParam } = await searchParams;
+  const { company: companyId, page: pageParam, q } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1") || 1);
-  const where = companyId ? { companyId } : {};
+  const where = {
+    ...(companyId ? { companyId } : {}),
+    ...(q ? {
+      OR: [
+        { name: { contains: q, mode: "insensitive" as const } },
+        { brand: { contains: q, mode: "insensitive" as const } },
+        { model: { contains: q, mode: "insensitive" as const } },
+        { serialNumber: { contains: q, mode: "insensitive" as const } },
+        { assetCode: { contains: q, mode: "insensitive" as const } },
+        { category: { name: { contains: q, mode: "insensitive" as const } } },
+      ],
+    } : {}),
+  };
 
   const [total, assets, companies] = await Promise.all([
     db.asset.count({ where }),
@@ -67,6 +80,7 @@ export default async function AssetsPage({
   function pageUrl(p: number) {
     const params = new URLSearchParams();
     if (companyId) params.set("company", companyId);
+    if (q) params.set("q", q);
     if (p > 1) params.set("page", String(p));
     const qs = params.toString();
     return `/assets${qs ? `?${qs}` : ""}`;
@@ -77,6 +91,7 @@ export default async function AssetsPage({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Assets</h1>
         <div className="flex flex-wrap items-center gap-2">
+          <SearchInput placeholder="Search assets..." />
           <CompanyFilter companies={companies} />
           <AssetExportButton />
           <GenerateCodesButton />

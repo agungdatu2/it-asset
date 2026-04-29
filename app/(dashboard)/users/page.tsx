@@ -8,16 +8,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createAdminUser } from "@/lib/actions";
 import { DeleteUserButton } from "./DeleteUserButton";
+import { SearchInput } from "@/components/shared/SearchInput";
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const [users, session] = await Promise.all([
-    db.user.findMany({ orderBy: { createdAt: "asc" } }),
+    db.user.findMany({
+      where: q ? {
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { email: { contains: q, mode: "insensitive" } },
+        ],
+      } : {},
+      orderBy: { createdAt: "asc" },
+    }),
     auth(),
   ]);
 
   return (
     <div className="p-3 md:p-6 space-y-4 md:space-y-6">
-      <h1 className="text-2xl font-bold">Admin Users</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold">Admin Users</h1>
+        <SearchInput placeholder="Search users..." />
+      </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>

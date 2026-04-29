@@ -9,6 +9,7 @@ import { createEmployee } from "@/lib/actions";
 import { DeleteEmployeeButton } from "./DeleteEmployeeButton";
 import { EditEmployeeForm } from "./EditEmployeeForm";
 import { CompanyFilter } from "@/components/shared/CompanyFilter";
+import { SearchInput } from "@/components/shared/SearchInput";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -17,11 +18,20 @@ const PAGE_SIZE = 10;
 export default async function EmployeesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ company?: string; page?: string }>;
+  searchParams: Promise<{ company?: string; page?: string; q?: string }>;
 }) {
-  const { company: companyId, page: pageParam } = await searchParams;
+  const { company: companyId, page: pageParam, q } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1") || 1);
-  const where = companyId ? { companyId } : {};
+  const where = {
+    ...(companyId ? { companyId } : {}),
+    ...(q ? {
+      OR: [
+        { name: { contains: q, mode: "insensitive" as const } },
+        { email: { contains: q, mode: "insensitive" as const } },
+        { department: { contains: q, mode: "insensitive" as const } },
+      ],
+    } : {}),
+  };
 
   const [total, employees, companies] = await Promise.all([
     db.employee.count({ where }),
@@ -43,6 +53,7 @@ export default async function EmployeesPage({
   function pageUrl(p: number) {
     const params = new URLSearchParams();
     if (companyId) params.set("company", companyId);
+    if (q) params.set("q", q);
     if (p > 1) params.set("page", String(p));
     const qs = params.toString();
     return `/employees${qs ? `?${qs}` : ""}`;
@@ -52,7 +63,10 @@ export default async function EmployeesPage({
     <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Employees</h1>
-        <CompanyFilter companies={companies} />
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchInput placeholder="Search employees..." />
+          <CompanyFilter companies={companies} />
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

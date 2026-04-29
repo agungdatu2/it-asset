@@ -6,16 +6,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createCompany } from "@/lib/actions";
 import { DeleteCompanyButton } from "./DeleteCompanyButton";
 import { EditCompanyForm } from "./EditCompanyForm";
+import { SearchInput } from "@/components/shared/SearchInput";
 
-export default async function CompaniesPage() {
+export default async function CompaniesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const companies = await db.company.findMany({
+    where: q ? { name: { contains: q, mode: "insensitive" } } : {},
     orderBy: { name: "asc" },
     include: { _count: { select: { employees: true } } },
   });
 
   return (
     <div className="p-3 md:p-6 space-y-4 md:space-y-6">
-      <h1 className="text-2xl font-bold">Companies</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold">Companies</h1>
+        <SearchInput placeholder="Search companies..." />
+      </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
