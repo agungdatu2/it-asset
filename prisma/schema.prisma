@@ -116,6 +116,7 @@ enum Role {
 enum AssetStatus {
   VACANT
   ACTIVE
+  BORROWED
   MAINTENANCE
   BROKEN
   RETIRED

@@ -8,6 +8,7 @@ import { CompanyFilter } from "@/components/shared/CompanyFilter";
 const STATUS_LABELS: Record<string, string> = {
   VACANT: "Vacant",
   ACTIVE: "Active",
+  BORROWED: "Borrowed",
   MAINTENANCE: "Maintenance",
   BROKEN: "Broken",
   RETIRED: "Retired",
@@ -16,6 +17,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   VACANT: "bg-gray-100 text-gray-700",
   ACTIVE: "bg-green-100 text-green-800",
+  BORROWED: "bg-purple-100 text-purple-800",
   MAINTENANCE: "bg-yellow-100 text-yellow-800",
   BROKEN: "bg-red-100 text-red-800",
   RETIRED: "bg-gray-100 text-gray-500",

@@ -12,6 +12,7 @@ const CATEGORIES = ["Laptop", "Computer", "Monitor", "Printer", "Software Licens
 const STATUSES = [
   { value: "VACANT", label: "Vacant" },
   { value: "ACTIVE", label: "Active" },
+  { value: "BORROWED", label: "Borrowed" },
   { value: "MAINTENANCE", label: "Maintenance" },
   { value: "BROKEN", label: "Broken" },
   { value: "RETIRED", label: "Retired" },
