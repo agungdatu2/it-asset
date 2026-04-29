@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,7 +45,14 @@ export default async function EditAssetPage({ params }: { params: Promise<{ id: 
       <Link href="/assets" className={buttonVariants({ variant: "ghost", size: "sm" })}>
         <ChevronLeft className="w-4 h-4" />Back
       </Link>
-      <h1 className="text-2xl font-bold">Edit Asset — {asset.name}</h1>
+      <div className="flex items-center gap-4">
+        {asset.imageUrl && (
+          <div className="relative w-20 h-20 rounded-lg overflow-hidden border bg-muted shrink-0">
+            <Image src={asset.imageUrl} alt={asset.name} fill className="object-cover" />
+          </div>
+        )}
+        <h1 className="text-2xl font-bold">Edit Asset — {asset.name}</h1>
+      </div>
 
       <AssetForm action={action} companies={companies} defaultValues={defaultValues} />
 

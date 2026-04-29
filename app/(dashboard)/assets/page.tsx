@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { db } from "@/lib/db";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const STATUS_LABELS: Record<string, string> = {
   VACANT: "Vacant",
   ACTIVE: "Active",
+  BORROWED: "Borrowed",
   MAINTENANCE: "Maintenance",
   BROKEN: "Broken",
   RETIRED: "Retired",
@@ -23,6 +25,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   VACANT: "outline",
   ACTIVE: "default",
+  BORROWED: "secondary",
   MAINTENANCE: "secondary",
   BROKEN: "destructive",
   RETIRED: "outline",
@@ -109,11 +112,22 @@ export default async function AssetsPage({
                   return (
                     <tr key={asset.id} className="border-t hover:bg-muted/30">
                       <td className="px-4 py-3">
-                        <div className="font-medium">{asset.name}</div>
-                        <div className="text-xs text-muted-foreground">{asset.category.name}</div>
-                        {asset.assetCode && (
-                          <div className="text-xs font-mono text-muted-foreground">{asset.assetCode}</div>
-                        )}
+                        <div className="flex items-center gap-3">
+                          {asset.imageUrl ? (
+                            <div className="relative w-10 h-10 rounded-md overflow-hidden border shrink-0 bg-muted">
+                              <Image src={asset.imageUrl} alt={asset.name} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 rounded-md border bg-muted shrink-0" />
+                          )}
+                          <div>
+                            <div className="font-medium">{asset.name}</div>
+                            <div className="text-xs text-muted-foreground">{asset.category.name}</div>
+                            {asset.assetCode && (
+                              <div className="text-xs font-mono text-muted-foreground">{asset.assetCode}</div>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground text-sm">{asset.company?.name || "—"}</td>
                       <td className="px-4 py-3">
