@@ -1,11 +1,12 @@
 "use client";
-import { useTransition } from "react";
+import { useTransition, useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, ImagePlus, X } from "lucide-react";
 
 const CATEGORIES = ["Laptop", "Computer", "Monitor", "Printer", "Software License", "Keyboard", "Mouse", "Server", "Other"];
 const STATUSES = [
@@ -33,6 +34,7 @@ interface Props {
     status?: string;
     notes?: string | null;
     invoiceUrl?: string | null;
+    imageUrl?: string | null;
     companyId?: string | null;
     category?: { name: string };
   };
@@ -40,6 +42,20 @@ interface Props {
 
 export function AssetForm({ action, companies, defaultValues }: Props) {
   const [isPending, startTransition] = useTransition();
+  const [preview, setPreview] = useState<string | null>(defaultValues?.imageUrl ?? null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+  }
+
+  function handleRemoveImage() {
+    setPreview(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -132,6 +148,32 @@ export function AssetForm({ action, companies, defaultValues }: Props) {
         <div className="col-span-2 space-y-1.5">
           <Label htmlFor="notes">Notes</Label>
           <Textarea id="notes" name="notes" defaultValue={defaultValues?.notes ?? ""} rows={3} />
+        </div>
+
+        <div className="col-span-2 space-y-1.5">
+          <Label>Asset Image</Label>
+          {preview ? (
+            <div className="relative w-48 h-36 rounded-lg overflow-hidden border bg-muted">
+              <Image src={preview} alt="Asset preview" fill className="object-cover" unoptimized={preview.startsWith("blob:")} />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-48 h-36 rounded-lg border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-muted-foreground/60 transition-colors bg-muted/30">
+              <ImagePlus className="w-6 h-6 text-muted-foreground mb-1" />
+              <span className="text-xs text-muted-foreground">Click to upload</span>
+              <input ref={fileRef} type="file" name="image" accept="image/*" className="hidden" onChange={handleImageChange} />
+            </label>
+          )}
+          {/* preserve existing URL if no new file uploaded */}
+          {defaultValues?.imageUrl && (
+            <input type="hidden" name="existingImageUrl" value={preview === defaultValues.imageUrl ? defaultValues.imageUrl : ""} />
+          )}
         </div>
       </div>
 

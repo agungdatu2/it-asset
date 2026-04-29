@@ -38,6 +38,7 @@ model Asset {
   status        AssetStatus @default(VACANT)
   notes         String?
   invoiceUrl    String?
+  imageUrl      String?
   categoryId    String
   companyId     String?
   createdAt     DateTime    @default(now())

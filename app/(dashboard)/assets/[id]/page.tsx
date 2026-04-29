@@ -33,6 +33,7 @@ export default async function EditAssetPage({ params }: { params: Promise<{ id: 
     ...asset,
     purchasePrice: asset.purchasePrice ? Number(asset.purchasePrice) : null,
     invoiceUrl: asset.invoiceUrl,
+    imageUrl: asset.imageUrl,
     companyId: asset.companyId,
     assetCode: asset.assetCode,
     xeroCode: asset.xeroCode,

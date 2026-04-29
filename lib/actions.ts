@@ -5,6 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { AssetStatus } from "@prisma/client";
 import { sendAssignmentEmail, sendReturnEmail } from "@/lib/email";
+import { put } from "@vercel/blob";
+
+async function uploadImage(file: File): Promise<string> {
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const blob = await put(`assets/${Date.now()}.${ext}`, file, { access: "public" });
+  return blob.url;
+}
 
 async function getSession() {
   const session = await auth();
@@ -57,6 +64,10 @@ export async function createAsset(formData: FormData) {
   const purchasePrice = formData.get("purchasePrice") as string;
   const purchaseDate = formData.get("purchaseDate") as string;
 
+  const imageFile = formData.get("image") as File | null;
+  let imageUrl: string | null = null;
+  if (imageFile && imageFile.size > 0) imageUrl = await uploadImage(imageFile);
+
   const asset = await db.asset.create({
     data: {
       name: formData.get("name") as string,
@@ -70,6 +81,7 @@ export async function createAsset(formData: FormData) {
       status: (formData.get("status") as AssetStatus) || "VACANT",
       notes: (formData.get("notes") as string) || null,
       invoiceUrl: (formData.get("invoiceUrl") as string) || null,
+      imageUrl,
       categoryId: category.id,
       companyId: (formData.get("companyId") as string) || null,
     },
@@ -101,6 +113,11 @@ export async function updateAsset(id: string, formData: FormData) {
   const purchasePrice = formData.get("purchasePrice") as string;
   const purchaseDate = formData.get("purchaseDate") as string;
 
+  const imageFile = formData.get("image") as File | null;
+  const existingImageUrl = formData.get("existingImageUrl") as string | null;
+  let imageUrl: string | null = existingImageUrl || null;
+  if (imageFile && imageFile.size > 0) imageUrl = await uploadImage(imageFile);
+
   await db.asset.update({
     where: { id },
     data: {
@@ -115,6 +132,7 @@ export async function updateAsset(id: string, formData: FormData) {
       status: formData.get("status") as AssetStatus,
       notes: (formData.get("notes") as string) || null,
       invoiceUrl: (formData.get("invoiceUrl") as string) || null,
+      imageUrl,
       categoryId: category.id,
       companyId: (formData.get("companyId") as string) || null,
     },
