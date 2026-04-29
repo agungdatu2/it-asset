@@ -1,8 +1,13 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/shared/Modal";
 import { FileCheck } from "lucide-react";
+
+function blobSrc(url: string) {
+  return `/api/asset-image?url=${encodeURIComponent(url)}`;
+}
 
 interface Props {
   assignment: {
@@ -23,6 +28,7 @@ interface Props {
       model: string | null;
       serialNumber: string | null;
       xeroCode: string | null;
+      imageUrl: string | null;
       category: { name: string };
     };
     employee: {
@@ -96,6 +102,7 @@ export function ProofModal({ assignment: a }: Props) {
 
   <div class="section">
     <div class="section-title">Asset</div>
+    ${a.asset.imageUrl ? `<div class="sig-box" style="margin-bottom:12px"><img src="${blobSrc(a.asset.imageUrl)}" alt="Asset" style="max-height:120px;max-width:200px;display:block;object-fit:cover;border-radius:6px"></div>` : ""}
     <div class="grid">
       <div class="full"><div class="label">Name</div><div class="value">${a.asset.name}</div></div>
       <div><div class="label">Category</div><div class="value">${a.asset.category.name}</div></div>
@@ -201,6 +208,11 @@ export function ProofModal({ assignment: a }: Props) {
               {/* Asset */}
               <div>
                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Asset</h3>
+                {a.asset.imageUrl && (
+                  <div className="relative w-full h-40 rounded-lg overflow-hidden border bg-gray-50 mb-3">
+                    <Image src={blobSrc(a.asset.imageUrl)} alt={a.asset.name} fill className="object-contain" unoptimized />
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
                   <div className="col-span-2"><span className="text-gray-500">Name</span><div className="font-medium">{a.asset.name}</div></div>
                   <div><span className="text-gray-500">Category</span><div className="font-medium">{a.asset.category.name}</div></div>
