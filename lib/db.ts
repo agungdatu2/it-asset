@@ -1,13 +1,22 @@
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-function createClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-  return new PrismaClient({ adapter });
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+export type Db = SupabaseClient;
+
+let cachedDb: Db | null = null;
+
+export function db() {
+  if (!cachedDb) {
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error("Missing Supabase env vars");
+    }
+    cachedDb = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+  }
+  return cachedDb;
 }
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-
-export const db = globalForPrisma.prisma || createClient();
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+export const dbInstance = db();

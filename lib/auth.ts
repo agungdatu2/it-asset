@@ -5,7 +5,8 @@ import bcrypt from "bcryptjs";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } }
 );
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -24,8 +25,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             .select("*")
             .eq("email", credentials.email as string)
             .maybeSingle();
-          console.log("[AUTH] query result:", !!data, error?.message || "ok");
-          if (error || !data) return null;
+          if (error || !data) {
+            console.log("[AUTH] user not found");
+            return null;
+          }
+          console.log("[AUTH] user found:", data.id, data.role);
           const valid = await bcrypt.compare(
             credentials.password as string,
             data.password
