@@ -1,13 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { createClient } from "@supabase/supabase-js";
+import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -18,29 +12,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        try {
-          console.log("[AUTH] attempt:", credentials.email);
-          const { data, error } = await supabase
-            .from("User")
-            .select("*")
-            .eq("email", credentials.email as string)
-            .maybeSingle();
-          if (error || !data) {
-            console.log("[AUTH] user not found");
-            return null;
-          }
-          console.log("[AUTH] user found:", data.id, data.role);
-          const valid = await bcrypt.compare(
-            credentials.password as string,
-            data.password
-          );
-          console.log("[AUTH] password valid:", valid);
-          if (!valid) return null;
-          return { id: data.id, name: data.name, email: data.email, role: data.role };
-        } catch (e) {
-          console.error("[AUTH] error:", e);
-          return null;
-        }
+        const user = await db.user.findUnique({
+          where: { email: credentials.email as string },
+        });
+        if (!user) return null;
+        const valid = await bcrypt.compare(credentials.password as string, user.password);
+        if (!valid) return null;
+        return { id: user.id, name: user.name, email: user.email, role: user.role };
       },
     }),
   ],
