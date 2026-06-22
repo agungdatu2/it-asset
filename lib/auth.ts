@@ -1,7 +1,13 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { db } from "@/lib/db";
+import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } }
+);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -14,15 +20,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
         try {
           console.log("[AUTH] attempt:", credentials.email);
-          const user = await db.user.findUnique({
-            where: { email: credentials.email as string },
-          });
-          console.log("[AUTH] user found:", !!user, user ? { id: user.id, role: user.role } : null);
-          if (!user) return null;
-          const valid = await bcrypt.compare(credentials.password as string, user.password);
+          const { data, error } = await supabase
+            .from("User")
+            .select("*")
+            .eq("email", credentials.email as string)
+            .maybeSingle();
+          if (error || !data) {
+            console.log("[AUTH] user not found");
+            return null;
+          }
+          console.log("[AUTH] user found:", data.id, data.role);
+          const valid = await bcrypt.compare(
+            credentials.password as string,
+            data.password
+          );
           console.log("[AUTH] password valid:", valid);
           if (!valid) return null;
-          return { id: user.id, name: user.name, email: user.email, role: user.role };
+          return { id: data.id, name: data.name, email: data.email, role: data.role };
         } catch (e) {
           console.error("[AUTH] error:", e);
           return null;
@@ -34,7 +48,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = (user as { id?: string }).id;
         token.role = (user as { role?: string }).role;
       }
       return token;
